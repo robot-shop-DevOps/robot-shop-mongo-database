@@ -106,7 +106,7 @@ job:
           value: mongo-service-headless
 
         - name: MONGO_PORT
-          value: 27017
+          value: "27017"
 
   insert_data:
     name: insert-data
@@ -158,7 +158,7 @@ job:
           value: mongo-service-headless
 
         - name: MONGO_PORT
-          value: 27017
+          value: "27017"
 
 service:
   name: mongo-service-headless
