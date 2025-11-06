@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+
+kind: StatefulSet
+
+metadata:
+  name: {{ .Values.statefulset.name }}
+
+  labels:
+{{ .Values.labels | toYaml | indent 4 }}
+
+spec:
+  selector:
+    matchLabels:
+{{ .Values.labels | toYaml | indent 6 }}
+
+  serviceName: {{ .Values.service.name }}
+
+  replicas: {{ .Values.statefulset.replicas }}
+
+  updateStrategy:
+{{ .Values.statefulset.updateStrategy | toYaml | indent 4 }}
+
+  template:
+    metadata:
+      labels:
+{{ .Values.labels | toYaml | indent 8 }}
+
+    spec:
+      nodeSelector:
+{{ .Values.statefulset.pod.nodeSelector | toYaml | indent 8 }}
+
+      containers:
+{{ .Values.statefulset.pod.containers | toYaml | indent 8 }}
+
+  volumeClaimTemplates:
+{{ .Values.statefulset.volumeClaimTemplates | toYaml | indent 4 }}

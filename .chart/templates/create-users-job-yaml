@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+
+kind: Job
+
+metadata:
+  name: {{ .Values.job.create_users.name }}
+  labels:
+{{ .Values.labels | toYaml | indent 4 }}
+  annotations:
+{{ .Values.job.create_users.annotations | toYaml | indent 4 }}
+
+spec:
+  template:
+    spec:
+      restartPolicy: {{ .Values.job.create_users.pod.restartPolicy }}
+
+      nodeSelector: 
+{{ .Values.job.create_users.pod.nodeSelector | toYaml | indent 8 }}
+
+      containers:
+{{ .Values.job.create_users.pod.containers | toYaml | indent 8 }}

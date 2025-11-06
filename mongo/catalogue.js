@@ -1,6 +1,3 @@
-//
-// Products
-//
 db = db.getSiblingDB('catalogue');
 db.products.insertMany([
     {sku: 'Watson', name: 'Watson', description: 'Probably the smartest AI on the planet', price: 2001, instock: 2, categories: ['Artificial Intelligence']},
@@ -27,4 +24,3 @@ db.products.createIndex(
     { sku: 1 },
     { unique: true }
 );
-
