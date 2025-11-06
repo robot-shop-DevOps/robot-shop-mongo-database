@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+
+kind: Job
+
+metadata:
+  name: {{ .Values.job.insert_data.name }}
+  labels:
+{{ .Values.labels | toYaml | indent 4 }}
+  annotations:
+{{ .Values.job.insert_data.annotations | toYaml | indent 4 }}
+
+spec:
+  template:
+    spec:
+      restartPolicy: {{ .Values.job.insert_data.pod.restartPolicy }}
+
+      nodeSelector: 
+{{ .Values.job.insert_data.pod.nodeSelector | toYaml | indent 8 }}
+
+      containers:
+{{ .Values.job.insert_data.pod.containers | toYaml | indent 8 }}

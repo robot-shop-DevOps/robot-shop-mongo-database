@@ -1,0 +1,171 @@
+labels:
+  app: Mongo
+  project: Robot-Shop
+  technology: Mongo-Database
+  environment: default 
+
+statefulset:
+  name: mongo
+
+  replicas: 1
+
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: default
+      resources:
+        requests:
+          storage: 1Gi  
+
+  pod:
+    nodeSelector:
+      project: Robot-Shop
+
+    containers:  
+    - name: mongo
+
+      image: ${IMAGE}  # <-- placeholder
+
+      imagePullPolicy: Always
+
+      ports:
+      - containerPort: 27017
+
+      env:
+      - name: MONGO_INITDB_ROOT_USERNAME
+        valueFrom: 
+          secretKeyRef:
+            name: mongo
+            key: MONGO_INITDB_ROOT_USERNAME
+
+      - name: MONGO_INITDB_ROOT_PASSWORD
+        valueFrom: 
+          secretKeyRef:
+            name: mongo
+            key: MONGO_INITDB_ROOT_PASSWORD
+
+      volumeMounts:
+      - name: mongo-data
+        mountPath: /data/db
+
+job:
+  create_users:
+    name: create-users
+
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "1"
+      "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+    pod:
+      restartPolicy: OnFailure
+
+      nodeSelector:
+        project: Robot-Shop
+      
+      containers:
+      - name: create-users
+
+        image: ${IMAGE}  # <-- placeholder
+
+        command: 
+        - "/bin/sh"
+        - "-c"
+        - |
+          set -e
+          until mongosh "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@$MONGO_HOST:$MONGO_PORT/admin" --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
+          echo "Waiting for MongoDB to be up..."
+          sleep 5
+          done
+          echo "MongoDB is up"
+          echo "Creating Default users..."
+          mongosh "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@$MONGO_HOST:$MONGO_PORT/admin" "/mongo-scripts/users.js"
+          echo "Created users."
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom: 
+            secretKeyRef:
+              name: mongo
+              key: MONGO_INITDB_ROOT_USERNAME
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongo
+              key: MONGO_INITDB_ROOT_PASSWORD
+
+        - name: MONGO_HOST
+          value: mongo-service-headless
+
+        - name: MONGO_PORT
+          value: 27017
+
+  insert_data:
+    name: insert-data
+
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "2"
+      "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+    pod:
+      restartPolicy: OnFailure
+
+      nodeSelector:
+        project: Robot-Shop
+      
+      containers:
+      - name: insert-data
+
+        image: ${IMAGE}  # <-- placeholder
+
+        command: 
+        - "/bin/sh"
+        - "-c"
+        - |
+          set -e
+          until mongosh "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@$MONGO_HOST:$MONGO_PORT/admin" --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
+          echo "Waiting for MongoDB to be up..."
+          sleep 5
+          done
+          echo "MongoDB is up"
+          echo "Inserting Data..."
+          mongosh "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@$MONGO_HOST:$MONGO_PORT/admin" "/mongo-scripts/catalogue.js"
+          echo "Inserted Data."
+
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom: 
+            secretKeyRef:
+              name: mongo
+              key: MONGO_INITDB_ROOT_USERNAME
+
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongo
+              key: MONGO_INITDB_ROOT_PASSWORD
+
+        - name: MONGO_HOST
+          value: mongo-service-headless
+
+        - name: MONGO_PORT
+          value: 27017
+
+service:
+  name: mongo-service-headless
+
+  clusterIP: None
+
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
