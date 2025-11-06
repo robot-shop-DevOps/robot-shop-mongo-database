@@ -72,13 +72,11 @@ job:
             sleep 5
           done
           echo "Creating root user..."
-          mongosh "mongodb://$MONGO_HOST:$MONGO_PORT/admin" --eval "
-            db.createUser({
-              user: '$MONGO_INITDB_ROOT_USERNAME',
-              pwd: '$MONGO_INITDB_ROOT_PASSWORD',
-              roles: [{role: 'root', db: 'admin'}]
-            });
-          "
+          mongosh "mongodb://$MONGO_HOST:$MONGO_PORT/admin" --eval 'db.createUser({
+            user: "'"$MONGO_INITDB_ROOT_USERNAME"'",
+            pwd: "'"$MONGO_INITDB_ROOT_PASSWORD"'",
+            roles: [{role: "root", db: "admin"}]
+          });'
           echo "Root user created successfully."
           until mongosh "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@$MONGO_HOST:$MONGO_PORT/admin" --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
           echo "Waiting for MongoDB to be up..."
