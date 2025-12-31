@@ -1,16 +1,28 @@
 db = db.getSiblingDB('catalogue');
 
+if (!db.getCollectionNames().includes('products')) {
+  db.createCollection('products');
+  print('Created products collection');
+} else {
+  print('Products collection already exists');
+}
+
 const existingIndexes = db.products.getIndexes().map(i => i.name);
 
 if (!existingIndexes.includes('name_text_description_text')) {
-  db.products.createIndex({ name: "text", description: "text" });
+  db.products.createIndex(
+    { name: "text", description: "text" }
+  );
   print('Created text index on "name" and "description"');
 } else {
   print('Text index already exists, skipping.');
 }
 
 if (!existingIndexes.includes('sku_1')) {
-  db.products.createIndex({ sku: 1 }, { unique: true });
+  db.products.createIndex(
+    { sku: 1 },
+    { unique: true }
+  );
   print('Created unique index on "sku"');
 } else {
   print('Unique index on "sku" already exists, skipping.');
@@ -36,9 +48,10 @@ products.forEach(product => {
     { $set: product },
     { upsert: true }
   );
+
   if (result.upsertedCount > 0) {
-    print('Inserted product: '+ product.sku);
+    print(`Inserted product: ${product.sku}`);
   } else if (result.matchedCount > 0) {
-    print('Updated existing product: '+ product.sku);
+    print(`Updated existing product: ${product.sku}`);
   }
 });
