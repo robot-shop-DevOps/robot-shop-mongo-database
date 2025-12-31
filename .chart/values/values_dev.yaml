@@ -1,0 +1,20 @@
+labels:
+  environment: dev
+
+statefulset:
+  replicas: 1
+
+  pod:
+    nodeSelector:
+      environment: dev
+
+job:
+  create_users:
+    pod:
+      nodeSelector:
+        environment: dev
+
+  insert_data:
+    pod:
+      nodeSelector:
+        environment: dev
